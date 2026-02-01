@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --main-blue: #1a41ff;
+            --dark-blue: #0f1c4d;
+            --bg-deep: #02040a;
+            --text-white: #ffffff;
+            --text-gray: #b0b8c4;
+            --card-bg: rgba(15, 28, 77, 0.3);
+        }
+        
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3, .btn { font-family: 'Kanit', sans-serif; text-transform: uppercase; }
+        
+        #canvas-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: #02040a; }
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; pointer-events: none;
+            background-image: linear-gradient(var(--dark-blue) 1px, transparent 1px),
+            linear-gradient(90deg, var(--dark-blue) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; z-index: 100;
+            backdrop-filter: blur(10px); border-bottom: 1px solid rgba(26, 65, 255, 0.2); background: rgba(2, 4, 10, 0.8);
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; color: var(--text-white); text-shadow: 0 0 10px var(--main-blue); cursor: pointer; }
+        .nav-items a { color: var(--text-gray); text-decoration: none; margin-left: 30px; font-weight: 500; transition: 0.3s; cursor: pointer; }
+        .nav-items a:hover, .nav-items a.active { color: var(--main-blue); text-shadow: 0 0 8px var(--main-blue); }
+
+        .page-section {
+            min-height: 100vh;
+            width: 100%;
+            padding-top: 80px;
+            display: none;
+            opacity: 0;
+        }
+        .page-section.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; height: 100%; display: flex; align-items: center; }
+        
+        .hero-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 50px; height: 80vh; }
+        .hero-text { flex: 1; }
+        .badge { display: inline-block; padding: 5px 15px; background: rgba(26, 65, 255, 0.1); border: 1px solid var(--main-blue); border-radius: 4px; color: var(--main-blue); font-size: 0.9rem; margin-bottom: 20px; letter-spacing: 2px; }
+        .title { font-size: 4rem; line-height: 1.1; font-weight: 700; margin-bottom: 20px; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .title span { color: var(--main-blue); -webkit-text-stroke: 1px var(--main-blue); }
+        .desc { font-size: 1.1rem; color: var(--text-gray); margin-bottom: 40px; max-width: 500px; }
+
+        .btn-box { display: flex; gap: 20px; }
+        .btn {
+            position: relative; padding: 12px 35px; background: var(--main-blue); color: white; font-weight: 600; border: none; cursor: pointer;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.4s; letter-spacing: 1px; overflow: hidden;
+            box-shadow: 0 0 15px rgba(26, 65, 255, 0.4);
+        }
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 2px, transparent 2px, transparent 8px);
+            opacity: 0.3;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 0 30px rgba(26, 65, 255, 0.8); background: #2f52ff; }
+        .btn-outline { background: transparent; border: 1px solid var(--main-blue); color: var(--text-white); box-shadow: none; }
+        .btn-outline:hover { background: rgba(26, 65, 255, 0.2); border-color: #fff; }
+
+        .hero-img { flex: 0.8; display: flex; justify-content: center; position: relative; }
+        .profile-wrapper { width: 380px; height: 380px; position: relative; display: flex; justify-content: center; align-items: center; }
+        .ring {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid transparent;
+            border-top: 2px solid var(--main-blue); border-left: 2px solid var(--main-blue);
+            animation: spin 10s linear infinite; box-shadow: 0 0 20px rgba(26, 65, 255, 0.2);
+        }
+        .img-box {
+            width: 320px; height: 320px; border-radius: 50%; overflow: hidden; border: 4px solid rgba(26, 65, 255, 0.5);
+            background: #000; position: relative; z-index: 2; box-shadow: 0 0 50px rgba(26, 65, 255, 0.3);
+        }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%) contrast(1.1); transition: 0.5s; pointer-events: none; }
+        
+        .skills { margin-top: 30px; display: flex; gap: 20px; align-items: center; }
+        .skill-icon { font-size: 1.8rem; color: var(--text-gray); transition: 0.3s; cursor: default; }
+        .skill-icon:hover { color: var(--main-blue); transform: translateY(-5px); text-shadow: 0 0 10px var(--main-blue); }
+
+        .projects-container {
+            max-width: 1300px; margin: 0 auto; padding: 40px 20px;
+        }
+        .page-header {
+            text-align: center; margin-bottom: 50px;
+        }
+        .page-title {
+            font-size: 3rem; color: #fff; text-shadow: 0 0 20px var(--main-blue); margin-bottom: 10px;
+        }
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+        .project-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(26, 65, 255, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.4s;
+            position: relative;
+            group: hover;
+        }
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border-color: var(--main-blue);
+        }
+        .card-img {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(26, 65, 255, 0.1);
+        }
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.5s;
+        }
+        .project-card:hover .card-img img {
+            transform: scale(1.05);
+        }
+        .card-content {
+            padding: 25px;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--main-blue);
+            margin-bottom: 10px;
+        }
+        .card-desc {
+            color: var(--text-gray);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .tech-tags {
+            display: flex;
+            gap: 10px;
+        }
+        .tech-tag {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            background: rgba(26, 65, 255, 0.1);
+            color: #fff;
+            border-radius: 5px;
+            border: 1px solid rgba(26, 65, 255, 0.3);
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 900px) {
+            .hero-row { flex-direction: column-reverse; text-align: center; gap: 40px; height: auto; padding-bottom: 50px; }
+            .hero-text { padding: 0 20px; }
+            .btn-box { justify-content: center; }
+            .skills { justify-content: center; }
+            .profile-wrapper { width: 300px; height: 300px; }
+            .img-box { width: 250px; height: 250px; }
+            .title { font-size: 2.8rem; }
+            .nav-items { display: none; }
+            .project-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    <canvas id="canvas-bg"></canvas>
+
+    <nav>
+        <div class="logo" onclick="switchPage('home')">ABOUT ME</div>
+        <div class="nav-items">
+            <a onclick="switchPage('home')" id="nav-home" class="active">HOME</a>
+            <a onclick="switchPage('projects')" id="nav-projects">PROJECTS</a>
+            <a href="#">CONTACT</a>
+        </div>
+    </nav>
+
+    <section id="home-section" class="page-section active">
+        <div class="container">
+            <div class="hero-row">
+                <div class="hero-text">
+                    <span class="badge">OWNER TYPER</span>
+                    <h1 class="title">DEVELOPER<br><span>ZFOUR</span></h1>
+                    <p class="desc">สร้างสรรค์ผลงาน Building(การทำแมพและวางโครงสร้าง) Gui Script( Luau Lua Python HTML CSS Java )</p>
+                    
+                    <div class="btn-box">
+                        <button class="btn" onclick="switchPage('projects')">VIEW PROJECTS</button>
+                        <button class="btn btn-outline">CONTACT ME</button>
+                    </div>
+
+                    <div class="skills">
+                        <i class="fa-solid fa-gamepad skill-icon" title="Roblox/Lua"></i>
+                        <i class="fa-brands fa-html5 skill-icon" title="HTML"></i>
+                        <i class="fa-brands fa-css3-alt skill-icon" title="CSS"></i>
+                        <i class="fa-brands fa-js skill-icon" title="JS/Node"></i>
+                        <i class="fa-brands fa-java skill-icon" title="Java"></i>
+                        <i class="fa-brands fa-python skill-icon" title="Python"></i>
+                    </div>
+                </div>
+
+                <div class="hero-img">
+                    <div class="profile-wrapper">
+                        <div class="ring"></div>
+                        <div class="img-box">
+                            <img src="https://img2.pic.in.th/1000018057.md.webp" alt="Profile">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects-section" class="page-section">
+        <div class="projects-container">
+            <div class="page-header">
+                <h2 class="page-title">MY CREATIONS</h2>
+                <p style="color:var(--text-gray)">รวมผลงานการออกแบบ UI/UX และระบบ Script ที่ผ่านมา</p>
+            </div>
+            
+            <div class="project-grid">
+                <div class="project-card">
+                    <div class="card-img">
+                        <img src="https://img5.pic.in.th/file/secure-sv1/1000018783.png" alt="Speedometer">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Advanced Speedometer</h3>
+                        <p class="card-desc">ระบบวัดความเร็วรถยนต์พร้อมเกียร์และสถานะต่างๆ</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Roblox Lua</span>
+                            <span class="tech-tag">UI Design</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-img">
+                        <img src="https://img5.pic.in.th/file/secure-sv1/1000018785.png">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Player Status HUD</h3>
+                        <p class="card-desc">แถบสถานะผู้เล่นแสดงพลังชีวิต เกราะ ความหิว และความกระหาย</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Roblox Lua</span>
+                            <span class="tech-tag">UX/UI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-img">
+                        <img src="https://img2.pic.in.th/1000018787.md.png">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Main Garage System</h3>
+                        <p class="card-desc">ระบบโรงรถ เลือกดูรถ เบิกรถ</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag">Scripting</span>
+                            <span class="tech-tag">Database</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="card-img">
+                        <img src="https://img2.pic.in.th/1000018789.md.png">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Team Selection GUI</h3>
+                        <p class="card-desc">หน้าต่างเลือกทีม</p>
+                        <div class="tech-tags">
+                            <span class="tech-tag">GUI Animation</span>
+                            <span class="tech-tag">Roblox</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 50px;">
+                <button class="btn btn-outline" onclick="switchPage('home')">BACK TO HOME</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        
+        let time = 0;
+        function draw() {
+            ctx.fillStyle = '#02040a';
+            ctx.fillRect(0, 0, w, h);
+            ctx.lineWidth = 2;
+            time += 0.005;
+            for(let i=0; i<5; i++) {
+                ctx.beginPath();
+                for(let x=0; x<w; x+=10) {
+                    let y = Math.sin(x*0.003 + time + i) * 50 + (h/2 + (i*30) - 60);
+                    ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = `rgba(26, 65, 255, ${0.1 + (i*0.05)})`;
+                ctx.stroke();
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        function switchPage(pageId) {
+            const homeSec = document.getElementById('home-section');
+            const projSec = document.getElementById('projects-section');
+            const navHome = document.getElementById('nav-home');
+            const navProj = document.getElementById('nav-projects');
+            
+            window.scrollTo(0,0);
+
+            if(pageId === 'projects') {
+                gsap.to(homeSec, {opacity: 0, duration: 0.5, onComplete: () => {
+                    homeSec.style.display = 'none';
+                    projSec.style.display = 'block';
+                    gsap.fromTo(projSec, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.5});
+                    gsap.fromTo(".project-card", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.2});
+                }});
+                navHome.classList.remove('active');
+                navProj.classList.add('active');
+            } else {
+                gsap.to(projSec, {opacity: 0, duration: 0.5, onComplete: () => {
+                    projSec.style.display = 'none';
+                    homeSec.style.display = 'block';
+                    gsap.fromTo(homeSec, {opacity: 0}, {opacity: 1, duration: 0.5});
+                }});
+                navProj.classList.remove('active');
+                navHome.classList.add('active');
+            }
+        }
+
+        gsap.fromTo("#home-section .hero-text > *", {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 1, stagger: 0.15, delay: 0.2});
+        gsap.fromTo(".hero-img", {opacity: 0, x: 30}, {opacity: 1, x: 0, duration: 1, delay: 0.5});
+    </script>
+</body>
+</html>
